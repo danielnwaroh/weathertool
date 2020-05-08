@@ -3,6 +3,9 @@ import * as $ from "jquery";
 import logo from "./logo.svg";
 import "./App.css";
 import dataFile from "./city.list.json";
+import config from "./config.json";
+
+var secretkey = config.APIKEY;
 
 let users = [
   {
@@ -77,7 +80,8 @@ class App extends React.Component {
       console.log("enter pressed!");
       var settings = {
         url:
-          "http://api.openweathermap.org/data/2.5/weather?q=Calgary&APPID=42f00a03522a5b10dffe2827b58e870e",
+          "http://api.openweathermap.org/data/2.5/weather?q=Calgary&APPID=" +
+          secretkey,
         method: "GET",
         crossDomain: true,
         timeout: 0,
