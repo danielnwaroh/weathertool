@@ -4,6 +4,8 @@ import logo from "./logo.svg";
 import "./App.css";
 import dataFile from "./city.list.json";
 import config from "./config.json";
+import countryCode from "./countrycode.json";
+import { Button, InputGroup } from "react-bootstrap";
 
 var secretkey = config.APIKEY;
 
@@ -54,81 +56,57 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      searchString: "",
-      users: [],
+      isActive: true,
+      currentTemp: "",
+      responseObj: {},
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.getForecast = this.getForecast.bind(this);
   }
 
-  componentDidMount() {
-    this.setState({
-      users: dataFile,
-    });
-    this.refs.search.focus();
-  }
+  componentDidMount() {}
 
-  handleChange(e) {
-    console.log(e.target.value);
-    this.setState({
-      searchString: this.refs.search.value,
-    });
-  }
-
-  handleKeyPress(e) {
-    if (e.key === "Enter") {
-      console.log("enter pressed!");
-      var settings = {
-        url:
-          "http://api.openweathermap.org/data/2.5/weather?q=Calgary&APPID=" +
-          secretkey,
+  getForecast() {
+    fetch(
+      "https://community-open-weather-map.p.rapidapi.com/weather?q=seattle",
+      {
         method: "GET",
-        crossDomain: true,
-        timeout: 0,
-        dataType: "jsonp",
         headers: {
-          "x-rapidapi-host": "wordsapiv1.p.rapidapi.com",
+          "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
           "x-rapidapi-key":
             "a5bbbde1eemsh008b1bc05139f67p1da3f8jsn404465dbd05a",
-          accept: "application/json",
-          "Access-Control-Allow-Origin": "*",
         },
-      };
-
-      $.ajax(settings).done(function (response) {
+      }
+    )
+      .then((response) => response.json())
+      .then((response) => {
         console.log(response);
+        this.setState({
+          responseObj: response,
+          currentTemp: response.main.temp,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    }
   }
   render() {
-    console.log(dataFile);
-    let _users = this.state.users;
-    let search = this.state.searchString.trim().toLowerCase();
+    let isActive = this.state.isActive;
+    let currentTemp = this.state.currentTemp;
+    let responseObj = this.state.responseObj;
 
-    if (search.length > 0) {
-      _users = _users.filter(function (user) {
-        return user.name.toLowerCase().match(search);
-      });
-    }
-    console.log(_users);
     return (
       <div className="App">
         <header className="App-header">
-          <input
-            type="text"
-            value={this.state.searchString}
-            ref="search"
-            onChange={(e) => this.handleChange(e)}
-            onKeyPress={this.handleKeyPress}
-            placeholder="type name here"
-          />
-          {_users.length < 10 ? (
-            <ul>
-              {_users.map((l) => {
-                return <li key={l.id}>{l.name}</li>;
-              })}
-            </ul>
-          ) : null}
+          <h1>React Weather App</h1>
+          <main>
+            <div>
+              <h2>Find Current Weather Conditions</h2>
+              <div>{JSON.stringify(responseObj)}</div>
+              <button onClick={() => this.getForecast()}>Get Forecast</button>
+              <div>{currentTemp}</div>
+            </div>
+          </main>
+          <footer>React Weather App - Daniel Nwaroh</footer>
         </header>
       </div>
     );

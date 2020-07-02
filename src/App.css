@@ -1,3 +1,27 @@
+.App-header {
+  display:flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+  text-align: center;
+  padding: 25px;
+}
+footer {
+  padding: 2px;
+  /*min-height: 100px;*/
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #EEEEEE;
+  font-size: small;
+  text-align: center;
+}
+header {
+  padding: 25px;
+}
 
 @keyframes App-logo-spin {
   from {
@@ -18,12 +42,13 @@ h3 {
 }
 
 input {
-  width: 500px;
-  margin: 10px auto;
+  width: 500px !important;
+  margin: 10px auto !important;
   display: block;
   padding: 10px;
   text-align: center;
 }
+
 
 ul {
   list-style-type: none;
@@ -37,10 +62,19 @@ li {
   padding: 10px;
   margin-bottom: 5px;
   position: relative;
+  text-align: center;
 }
 
+li:hover {
+  background-color: #acacac;
+}
 a {
   position: absolute;
   left: 200px;
   color: #777;
+}
+
+.suggestedCity {
+  /*border: solid black;*/
+  /*margin: 1px;*/
 }
