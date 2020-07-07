@@ -36,6 +36,7 @@
   "devDependencies": {
     "jquery": "^3.5.1",
     "prettier": "2.0.5",
-    "react-search-box": "^2.0.2"
+    "react-search-box": "^2.0.2",
+    "semantic-ui-react": "^0.88.2"
   }
 }

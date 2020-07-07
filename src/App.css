@@ -23,6 +23,18 @@ header {
   padding: 25px;
 }
 
+.mainGrid {
+  border: solid black;
+}
+
+#currentDisplay {
+  color: white !important;
+}
+
+.tempLabel {
+  color: white!important;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -39,42 +51,4 @@ header {
 
 h3 {
   text-align: center;
-}
-
-input {
-  width: 500px !important;
-  margin: 10px auto !important;
-  display: block;
-  padding: 10px;
-  text-align: center;
-}
-
-
-ul {
-  list-style-type: none;
-  width: 500px;
-  margin: 0 auto;
-  padding: 0;
-}
-
-li {
-  background-color: #f5f5f5;
-  padding: 10px;
-  margin-bottom: 5px;
-  position: relative;
-  text-align: center;
-}
-
-li:hover {
-  background-color: #acacac;
-}
-a {
-  position: absolute;
-  left: 200px;
-  color: #777;
-}
-
-.suggestedCity {
-  /*border: solid black;*/
-  /*margin: 1px;*/
 }
