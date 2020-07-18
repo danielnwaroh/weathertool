@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Grid,
-  Segment,
   Header,
   Icon,
   Input,
@@ -13,14 +12,11 @@ import {
   Button,
   Table,
 } from "semantic-ui-react";
-import "semantic-ui-css/semantic.min.css";
-// import logo from "./logo.svg";
+// import "semantic-ui-css/semantic.min.css";
 import "./App.css";
-// import dataFile from "./city.list.json";
 import config from "./config.json";
-// import countryCode from "./countrycode.json";
-// import { Button, InputGroup } from "react-bootstrap";
 import countryList from "./countrycode.json";
+import _ from "lodash";
 
 var weekday = [
   "Sunday",
@@ -53,82 +49,28 @@ class App extends React.Component {
     this.state = {
       currentTemp: "",
       dataReady: false,
-      responseObj: {},
       searchBarValue: "",
       searchResult: {},
       openModal: false,
       resultLength: 0,
+      selectedCity: {},
+      listOfCities: [],
     };
-    this.getForecast = this.getForecast.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.openSearchModal = this.openSearchModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
+    this.selectRow = this.selectRow.bind(this);
   }
 
   componentDidMount() {
     console.log(countryList);
   }
 
-  getForecast() {
-    // fetch(
-    //   "https://community-open-weather-map.p.rapidapi.com/weather?q=seattle",
-    //   {
-    //     method: "GET",
-    //     headers: {
-    //       "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
-    //       "x-rapidapi-key":
-    //         "a5bbbde1eemsh008b1bc05139f67p1da3f8jsn404465dbd05a",
-    //     },
-    //   }
-    // )
-    //   .then((response) => response.json())
-    //   .then((response) => {
-    //     console.log(response);
-    //     this.setState({
-    //       responseObj: response,
-    //       currentTemp: response.main.temp,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
-    fetch(
-      "https://community-open-weather-map.p.rapidapi.com/weather?id=2172797&units=%2522metric%2522%20or%20%2522imperial%2522&mode=xml%252C%20html&q=calgary",
-      {
-        method: "GET",
-        headers: {
-          "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
-          "x-rapidapi-key": config.APIKEY,
-        },
-      }
-    )
-      .then((response) => response.json())
-      .then((response) => {
-        console.log(response);
-        this.setState({
-          responseObj: response,
-          currentTemp: response.main.temp,
-        });
-      })
-      .then((response) => {
-        this.setState({
-          dataReady: true,
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
   handleChange(event) {
     // console.log(event.target.value);
     this.setState({ searchBarValue: event.target.value });
-  }
-
-  handleChangeModal(event) {
-    // console.log(event.target.value);
   }
 
   handleKeyDown(event) {
@@ -191,13 +133,27 @@ class App extends React.Component {
     });
   }
 
+  selectRow(id, index) {
+    const { searchResult } = this.state;
+    console.log("row");
+    console.log(index);
+    console.log(searchResult.list[index]);
+    this.setState({
+      openModal: false,
+      dataReady: true,
+      selectedCity: searchResult.list[index],
+      currentTemp: this.convertToCelcius(searchResult.list[index].main.temp),
+    });
+  }
+
   render() {
     const {
       currentTemp,
       dataReady,
-      responseObj,
       searchResult,
       resultLength,
+      selectedCity,
+      listOfCities,
     } = this.state;
 
     return (
@@ -212,10 +168,6 @@ class App extends React.Component {
                 borderRadius: "10px 0px 0px 10px",
               }}
             >
-              {/*<Segment>1</Segment>*/}
-              {/*<Grid.Row>*/}
-              {/*  <h1>React Weather App</h1>*/}
-              {/*</Grid.Row>*/}
               <Header as="h1" icon textAlign="center">
                 <Header.Content>React Weather App</Header.Content>
               </Header>
@@ -223,6 +175,7 @@ class App extends React.Component {
               <main>
                 <div>
                   <h2>Find Current Weather Conditions</h2>
+
                   <div className={"cardContainer"}>
                     <Card style={{ height: "100%" }}>
                       <Card.Content className={"cardContentContainer"}>
@@ -244,25 +197,7 @@ class App extends React.Component {
                       </Card.Content>
                     </Card>
                   </div>
-                  <Input
-                    icon={
-                      <Icon
-                        name="search"
-                        inverted
-                        circular
-                        link
-                        onClick={this.handleSubmit}
-                      />
-                    }
-                    placeholder="Search..."
-                    value={this.state.searchBarValue}
-                    onChange={this.handleChange}
-                    onKeyDown={this.handleKeyDown}
-                  />
-                  <div>{JSON.stringify(responseObj)}</div>
-                  <button onClick={() => this.getForecast()}>
-                    Get Forecast
-                  </button>
+
                   <div>{currentTemp}</div>
                 </div>
               </main>
@@ -276,7 +211,6 @@ class App extends React.Component {
                 borderRadius: "0px 10px 10px 0px",
               }}
             >
-              {/*<Segment>2</Segment>*/}
               <main>
                 <div style={{ color: "white" }}>
                   <Header
@@ -295,33 +229,32 @@ class App extends React.Component {
                     <Statistic.Value className={"tempLabel"}>
                       {dataReady === false
                         ? ""
-                        : this.convertToCelcius(currentTemp) + "\u00b0" + "C"}
+                        : this.convertToCelcius(selectedCity.main.temp) +
+                          "\u00b0C"}
                     </Statistic.Value>
                     <Statistic.Label className={"tempLabel"}>
                       {dataReady === false
                         ? ""
-                        : encodeURIComponent(responseObj.name) +
+                        : encodeURIComponent(selectedCity.name) +
                           ", " +
-                          countryList[responseObj.sys.country]}
+                          countryList[selectedCity.sys.country]}
                     </Statistic.Label>
                   </Statistic>
                   <Header as="h6" className={"tempLabel"}>
                     {dataReady === false
                       ? ""
                       : "Feels like " +
-                        this.convertToCelcius(responseObj.main.feels_like)}
+                        this.convertToCelcius(selectedCity.main.feels_like)}
                   </Header>
                 </div>
               </main>
             </Grid.Column>
           </Grid>
-
           {/*<footer>React Weather App - Daniel Nwaroh</footer>*/}
         </header>
         <Modal
           open={this.state.openModal}
           id={"addCityModal"}
-          // dimmer={"blurring"}
           onClose={this.closeModal}
           style={{ textAlign: "center" }}
         >
@@ -346,39 +279,38 @@ class App extends React.Component {
             </Modal.Description>
             <div>
               {resultLength === 0 ? null : (
-                <Table celled fixed singleLine>
+                <Table
+                  celled
+                  fixed
+                  singleLine
+                  selectable
+                  style={{ marginTop: "30px" }}
+                >
                   <Table.Header>
                     <Table.Row>
-                      <Table.HeaderCell>Name</Table.HeaderCell>
-                      <Table.HeaderCell>Status</Table.HeaderCell>
-                      <Table.HeaderCell>Description</Table.HeaderCell>
+                      <Table.HeaderCell>City</Table.HeaderCell>
+                      <Table.HeaderCell>Country</Table.HeaderCell>
+                      <Table.HeaderCell>
+                        Temperature ({"\u00b0C"})
+                      </Table.HeaderCell>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
-                    <Table.Row>
-                      <Table.Cell>John</Table.Cell>
-                      <Table.Cell>Approved</Table.Cell>
-                      <Table.Cell
-                        title={[
-                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
-                          "et dolore magna aliqua.",
-                        ].join(" ")}
-                      >
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                        sed do eiusmod tempor incididunt ut labore et dolore
-                        magna aliqua.
-                      </Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>Jamie</Table.Cell>
-                      <Table.Cell>Approved</Table.Cell>
-                      <Table.Cell>Shorter description</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>Jill</Table.Cell>
-                      <Table.Cell>Denied</Table.Cell>
-                      <Table.Cell>Shorter description</Table.Cell>
-                    </Table.Row>
+                    {_.map(
+                      searchResult.list,
+                      ({ name, id, sys, main }, index) => (
+                        <Table.Row
+                          key={id}
+                          onClick={() => this.selectRow(id, index)}
+                        >
+                          <Table.Cell>{name}</Table.Cell>
+                          <Table.Cell>{countryList[sys.country]}</Table.Cell>
+                          <Table.Cell>
+                            {this.convertToCelcius(main.temp)}
+                          </Table.Cell>
+                        </Table.Row>
+                      )
+                    )}
                   </Table.Body>
                 </Table>
               )}
