@@ -6,6 +6,12 @@ import {
   Icon,
   Input,
   Statistic,
+  Card,
+  Image,
+  Popup,
+  Modal,
+  Button,
+  Table,
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 // import logo from "./logo.svg";
@@ -15,8 +21,6 @@ import config from "./config.json";
 // import countryCode from "./countrycode.json";
 // import { Button, InputGroup } from "react-bootstrap";
 import countryList from "./countrycode.json";
-
-var secretkey = config.APIKEY;
 
 var weekday = [
   "Sunday",
@@ -51,11 +55,16 @@ class App extends React.Component {
       dataReady: false,
       responseObj: {},
       searchBarValue: "",
+      searchResult: {},
+      openModal: false,
+      resultLength: 0,
     };
     this.getForecast = this.getForecast.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.openSearchModal = this.openSearchModal.bind(this);
+    this.closeModal = this.closeModal.bind(this);
   }
 
   componentDidMount() {
@@ -118,6 +127,10 @@ class App extends React.Component {
     this.setState({ searchBarValue: event.target.value });
   }
 
+  handleChangeModal(event) {
+    // console.log(event.target.value);
+  }
+
   handleKeyDown(event) {
     // console.log(event.key);
     if (event.key === "Enter") {
@@ -142,6 +155,10 @@ class App extends React.Component {
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
+        this.setState({
+          searchResult: response,
+          resultLength: response.list.length,
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -160,10 +177,28 @@ class App extends React.Component {
     return Math.round(temp - 273.15);
   }
 
+  openSearchModal() {
+    console.log("modal");
+    this.setState({
+      openModal: true,
+    });
+  }
+
+  closeModal() {
+    console.log("close");
+    this.setState({
+      openModal: false,
+    });
+  }
+
   render() {
-    const { currentTemp, dataReady, responseObj } = this.state;
-    // let currentTemp = this.state.currentTemp;
-    // let responseObj = this.state.responseObj;
+    const {
+      currentTemp,
+      dataReady,
+      responseObj,
+      searchResult,
+      resultLength,
+    } = this.state;
 
     return (
       <div className="App">
@@ -188,6 +223,27 @@ class App extends React.Component {
               <main>
                 <div>
                   <h2>Find Current Weather Conditions</h2>
+                  <div className={"cardContainer"}>
+                    <Card style={{ height: "100%" }}>
+                      <Card.Content className={"cardContentContainer"}>
+                        <div className={"innerCard"}>
+                          <Popup
+                            trigger={
+                              <Icon
+                                link
+                                aria-hidden="true"
+                                className="add huge icon"
+                                onClick={this.openSearchModal}
+                              ></Icon>
+                            }
+                            content="Click to add a city"
+                            basic
+                          />
+                          <Card.Header>Add a city</Card.Header>
+                        </div>
+                      </Card.Content>
+                    </Card>
+                  </div>
                   <Input
                     icon={
                       <Icon
@@ -262,6 +318,73 @@ class App extends React.Component {
 
           {/*<footer>React Weather App - Daniel Nwaroh</footer>*/}
         </header>
+        <Modal
+          open={this.state.openModal}
+          id={"addCityModal"}
+          // dimmer={"blurring"}
+          onClose={this.closeModal}
+          style={{ textAlign: "center" }}
+        >
+          <Modal.Header>Search a City</Modal.Header>
+          <Modal.Content>
+            <Modal.Description>
+              <Input
+                icon={
+                  <Icon
+                    name="search"
+                    inverted
+                    circular
+                    link
+                    onClick={this.handleSubmit}
+                  />
+                }
+                placeholder="Search..."
+                value={this.state.searchBarValue}
+                onChange={this.handleChange}
+                onKeyDown={this.handleKeyDown}
+              />
+            </Modal.Description>
+            <div>
+              {resultLength === 0 ? null : (
+                <Table celled fixed singleLine>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>Name</Table.HeaderCell>
+                      <Table.HeaderCell>Status</Table.HeaderCell>
+                      <Table.HeaderCell>Description</Table.HeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    <Table.Row>
+                      <Table.Cell>John</Table.Cell>
+                      <Table.Cell>Approved</Table.Cell>
+                      <Table.Cell
+                        title={[
+                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
+                          "et dolore magna aliqua.",
+                        ].join(" ")}
+                      >
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                        sed do eiusmod tempor incididunt ut labore et dolore
+                        magna aliqua.
+                      </Table.Cell>
+                    </Table.Row>
+                    <Table.Row>
+                      <Table.Cell>Jamie</Table.Cell>
+                      <Table.Cell>Approved</Table.Cell>
+                      <Table.Cell>Shorter description</Table.Cell>
+                    </Table.Row>
+                    <Table.Row>
+                      <Table.Cell>Jill</Table.Cell>
+                      <Table.Cell>Denied</Table.Cell>
+                      <Table.Cell>Shorter description</Table.Cell>
+                    </Table.Row>
+                  </Table.Body>
+                </Table>
+              )}
+            </div>
+          </Modal.Content>
+        </Modal>
       </div>
     );
   }

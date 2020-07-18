@@ -52,3 +52,23 @@ header {
 h3 {
   text-align: center;
 }
+
+.cardContainer {
+  height: 225px;
+  width: 175px;
+}
+
+.cardContentContainer {
+  position: relative;
+}
+
+.innerCard {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+
+#addCityModal {
+  width: 100% !important;
+  height: auto;
+}
