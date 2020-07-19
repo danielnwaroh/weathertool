@@ -55,6 +55,7 @@ class App extends React.Component {
       resultLength: 0,
       selectedCity: {},
       listOfCities: [],
+      newStateArr: [],
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -97,6 +98,13 @@ class App extends React.Component {
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
+        Promise.all(response.list.map((info) => this.getLocations(info)))
+          .then((results) => {
+            console.log(this.state.newStateArr);
+          })
+          .catch((err) => console.log(err));
+        // this.getLocations(response.list);
+
         this.setState({
           searchResult: response,
           resultLength: response.list.length,
@@ -134,17 +142,48 @@ class App extends React.Component {
   }
 
   selectRow(id, index) {
-    const { searchResult } = this.state;
-    console.log("row");
-    console.log(index);
-    console.log(searchResult.list[index]);
+    const { searchResult, listOfCities } = this.state;
+    // console.log("row");
+    // console.log(index);
+    // console.log(searchResult.list[index]);
+    let tempCityList = listOfCities;
+    tempCityList.push(searchResult.list[index]);
     this.setState({
       openModal: false,
       dataReady: true,
       selectedCity: searchResult.list[index],
       currentTemp: this.convertToCelcius(searchResult.list[index].main.temp),
+      listOfCities: tempCityList,
     });
   }
+
+  getLocations = async (places) => {
+    console.log(places);
+    let { newStateArr } = this.state;
+    let res = await fetch(
+      "http://open.mapquestapi.com/geocoding/v1/reverse?key=ur9Mlp4RDRyjSSzQGEWlEnLBWcu2RCgG&location=" +
+        places.coord.lat +
+        "," +
+        places.coord.lon +
+        "&includeRoadMetadata=true&includeNearestIntersection=true",
+      {
+        method: "GET",
+      }
+    )
+      .then((response) => response.json())
+      .then((response) => {
+        // newStateArr.push(response.results[0].locations[0].adminArea3);
+        // console.log(response);
+        return response.results[0].locations[0];
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    console.log(res);
+
+    newStateArr.push(res);
+    this.setState({ newStateArr: newStateArr });
+  };
 
   render() {
     const {
@@ -176,27 +215,73 @@ class App extends React.Component {
                 <div>
                   <h2>Find Current Weather Conditions</h2>
 
-                  <div className={"cardContainer"}>
-                    <Card style={{ height: "100%" }}>
-                      <Card.Content className={"cardContentContainer"}>
-                        <div className={"innerCard"}>
-                          <Popup
-                            trigger={
-                              <Icon
-                                link
-                                aria-hidden="true"
-                                className="add huge icon"
-                                onClick={this.openSearchModal}
-                              ></Icon>
-                            }
-                            content="Click to add a city"
-                            basic
-                          />
-                          <Card.Header>Add a city</Card.Header>
+                  {/*<div className={"cardContainer"}>*/}
+                  {/*  <Card style={{ height: "100%" }}>*/}
+                  {/*    <Card.Content className={"cardContentContainer"}>*/}
+                  {/*      <div className={"innerCard"}>*/}
+                  {/*        <Popup*/}
+                  {/*          trigger={*/}
+                  {/*            <Icon*/}
+                  {/*              link*/}
+                  {/*              aria-hidden="true"*/}
+                  {/*              className="add huge icon"*/}
+                  {/*              onClick={this.openSearchModal}*/}
+                  {/*            ></Icon>*/}
+                  {/*          }*/}
+                  {/*          content="Click to add a city"*/}
+                  {/*          basic*/}
+                  {/*        />*/}
+                  {/*        <Card.Header>Add a city</Card.Header>*/}
+                  {/*      </div>*/}
+                  {/*    </Card.Content>*/}
+                  {/*  </Card>*/}
+                  {/*  /!*<Card style={{ height: "100%" }}>*!/*/}
+                  {/*  /!*  <Card.Content className={"cardContentContainer"}>*!/*/}
+                  {/*  /!*    <div className={"innerCard"}>*!/*/}
+                  {/*  /!*      hello*!/*/}
+                  {/*  /!*      <Card.Header>Add a city</Card.Header>*!/*/}
+                  {/*  /!*    </div>*!/*/}
+                  {/*  /!*  </Card.Content>*!/*/}
+                  {/*  /!*</Card>*!/*/}
+                  {/*</div>*/}
+                  <Grid doubling columns={4}>
+                    {listOfCities.map(({ name, id }, index) => (
+                      <Grid.Column key={id}>
+                        <div className={"cardContainer"}>
+                          <Card style={{ height: "100%" }} key={id}>
+                            <Card.Content className={"cardContentContainer"}>
+                              <div className={"innerCard"}>
+                                <Card.Header>{name}</Card.Header>
+                              </div>
+                            </Card.Content>
+                          </Card>
                         </div>
-                      </Card.Content>
-                    </Card>
-                  </div>
+                      </Grid.Column>
+                    ))}
+                    <Grid.Column>
+                      <div className={"cardContainer"}>
+                        <Card style={{ height: "100%" }}>
+                          <Card.Content className={"cardContentContainer"}>
+                            <div className={"innerCard"}>
+                              <Popup
+                                trigger={
+                                  <Icon
+                                    link
+                                    aria-hidden="true"
+                                    className="add huge icon"
+                                    onClick={this.openSearchModal}
+                                  ></Icon>
+                                }
+                                content="Click to add a city"
+                                basic
+                              />
+                              <Card.Header>Add a city</Card.Header>
+                            </div>
+                          </Card.Content>
+                        </Card>
+                      </div>
+                    </Grid.Column>
+                  </Grid>
 
                   <div>{currentTemp}</div>
                 </div>
