@@ -50,7 +50,7 @@ class App extends React.Component {
       currentTemp: "",
       dataReady: false,
       searchBarValue: "",
-      searchResult: {},
+      searchResult: [],
       openModal: false,
       resultLength: 0,
       selectedCity: {},
@@ -63,11 +63,10 @@ class App extends React.Component {
     this.openSearchModal = this.openSearchModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
     this.selectRow = this.selectRow.bind(this);
+    this.clickCity = this.clickCity.bind(this);
   }
 
-  componentDidMount() {
-    console.log(countryList);
-  }
+  componentDidMount() {}
 
   handleChange(event) {
     // console.log(event.target.value);
@@ -75,14 +74,12 @@ class App extends React.Component {
   }
 
   handleKeyDown(event) {
-    // console.log(event.key);
     if (event.key === "Enter") {
       this.handleSubmit();
     }
   }
 
   handleSubmit() {
-    // console.log("submit");
     console.log(this.state.searchBarValue);
     fetch(
       "https://community-open-weather-map.p.rapidapi.com/find?type=link%252C%20accurate&units=imperial%252C%20metric&q=" +
@@ -100,15 +97,12 @@ class App extends React.Component {
         console.log(response);
         Promise.all(response.list.map((info) => this.getLocations(info)))
           .then((results) => {
-            console.log(this.state.newStateArr);
+            console.log(this.state.searchResult);
+            this.setState({
+              resultLength: response.list.length,
+            });
           })
           .catch((err) => console.log(err));
-        // this.getLocations(response.list);
-
-        this.setState({
-          searchResult: response,
-          resultLength: response.list.length,
-        });
       })
       .catch((err) => {
         console.log(err);
@@ -128,32 +122,37 @@ class App extends React.Component {
   }
 
   openSearchModal() {
-    console.log("modal");
+    console.log(this.state.searchResult);
     this.setState({
       openModal: true,
     });
   }
 
   closeModal() {
-    console.log("close");
+    console.log("closing......");
     this.setState({
       openModal: false,
+      searchResult: [],
+      resultLength: 0,
+      searchBarValue: "",
     });
   }
 
   selectRow(id, index) {
     const { searchResult, listOfCities } = this.state;
-    // console.log("row");
-    // console.log(index);
-    // console.log(searchResult.list[index]);
+
     let tempCityList = listOfCities;
-    tempCityList.push(searchResult.list[index]);
+    tempCityList.push(searchResult[index]);
+
     this.setState({
       openModal: false,
       dataReady: true,
-      selectedCity: searchResult.list[index],
-      currentTemp: this.convertToCelcius(searchResult.list[index].main.temp),
+      selectedCity: searchResult[index],
+      currentTemp: this.convertToCelcius(searchResult[index].main.temp),
       listOfCities: tempCityList,
+      searchResult: [],
+      resultLength: 0,
+      searchBarValue: "",
     });
   }
 
@@ -161,7 +160,9 @@ class App extends React.Component {
     console.log(places);
     let { newStateArr } = this.state;
     let res = await fetch(
-      "http://open.mapquestapi.com/geocoding/v1/reverse?key=ur9Mlp4RDRyjSSzQGEWlEnLBWcu2RCgG&location=" +
+      "http://open.mapquestapi.com/geocoding/v1/reverse?key=" +
+        config.APIKEY2 +
+        "&location=" +
         places.coord.lat +
         "," +
         places.coord.lon +
@@ -173,17 +174,24 @@ class App extends React.Component {
       .then((response) => response.json())
       .then((response) => {
         // newStateArr.push(response.results[0].locations[0].adminArea3);
-        // console.log(response);
         return response.results[0].locations[0];
       })
       .catch((err) => {
         console.log(err);
       });
-    console.log(res);
+    let mergeObj = { ...res, ...places };
 
-    newStateArr.push(res);
-    this.setState({ newStateArr: newStateArr });
+    newStateArr.push(mergeObj);
+    // this.setState({ newStateArr: newStateArr });
+    this.setState({ searchResult: newStateArr });
   };
+
+  clickCity(index) {
+    const { listOfCities } = this.state;
+    this.setState({
+      selectedCity: listOfCities[index],
+    });
+  }
 
   render() {
     const {
@@ -214,41 +222,16 @@ class App extends React.Component {
               <main>
                 <div>
                   <h2>Find Current Weather Conditions</h2>
-
-                  {/*<div className={"cardContainer"}>*/}
-                  {/*  <Card style={{ height: "100%" }}>*/}
-                  {/*    <Card.Content className={"cardContentContainer"}>*/}
-                  {/*      <div className={"innerCard"}>*/}
-                  {/*        <Popup*/}
-                  {/*          trigger={*/}
-                  {/*            <Icon*/}
-                  {/*              link*/}
-                  {/*              aria-hidden="true"*/}
-                  {/*              className="add huge icon"*/}
-                  {/*              onClick={this.openSearchModal}*/}
-                  {/*            ></Icon>*/}
-                  {/*          }*/}
-                  {/*          content="Click to add a city"*/}
-                  {/*          basic*/}
-                  {/*        />*/}
-                  {/*        <Card.Header>Add a city</Card.Header>*/}
-                  {/*      </div>*/}
-                  {/*    </Card.Content>*/}
-                  {/*  </Card>*/}
-                  {/*  /!*<Card style={{ height: "100%" }}>*!/*/}
-                  {/*  /!*  <Card.Content className={"cardContentContainer"}>*!/*/}
-                  {/*  /!*    <div className={"innerCard"}>*!/*/}
-                  {/*  /!*      hello*!/*/}
-                  {/*  /!*      <Card.Header>Add a city</Card.Header>*!/*/}
-                  {/*  /!*    </div>*!/*/}
-                  {/*  /!*  </Card.Content>*!/*/}
-                  {/*  /!*</Card>*!/*/}
-                  {/*</div>*/}
                   <Grid doubling columns={4}>
                     {listOfCities.map(({ name, id }, index) => (
                       <Grid.Column key={id}>
                         <div className={"cardContainer"}>
-                          <Card style={{ height: "100%" }} key={id}>
+                          <Card
+                            href={"#" + id}
+                            style={{ height: "100%" }}
+                            key={id}
+                            onClick={() => this.clickCity(index)}
+                          >
                             <Card.Content className={"cardContentContainer"}>
                               <div className={"innerCard"}>
                                 <Card.Header>{name}</Card.Header>
@@ -374,6 +357,7 @@ class App extends React.Component {
                   <Table.Header>
                     <Table.Row>
                       <Table.HeaderCell>City</Table.HeaderCell>
+                      <Table.HeaderCell>State/Province</Table.HeaderCell>
                       <Table.HeaderCell>Country</Table.HeaderCell>
                       <Table.HeaderCell>
                         Temperature ({"\u00b0C"})
@@ -382,13 +366,14 @@ class App extends React.Component {
                   </Table.Header>
                   <Table.Body>
                     {_.map(
-                      searchResult.list,
-                      ({ name, id, sys, main }, index) => (
+                      searchResult,
+                      ({ name, id, sys, main, adminArea3 }, index) => (
                         <Table.Row
                           key={id}
                           onClick={() => this.selectRow(id, index)}
                         >
                           <Table.Cell>{name}</Table.Cell>
+                          <Table.Cell>{adminArea3}</Table.Cell>
                           <Table.Cell>{countryList[sys.country]}</Table.Cell>
                           <Table.Cell>
                             {this.convertToCelcius(main.temp)}
